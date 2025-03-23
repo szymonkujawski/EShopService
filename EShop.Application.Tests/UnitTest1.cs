@@ -1,57 +1,92 @@
+using EShop.Application.Services;
+using EShop.Domain.Exceptions;
 using Xunit;
-using EShop.Application;
 
 namespace EShop.Application.Tests
 {
-    public class CreditCardServiceTests
+    public class CardValidatorServiceTests
     {
-        private readonly CreditCardService _creditCardService;
+        private readonly CardValidatorService _cardValidator;
 
-        public CreditCardServiceTests()
+        public CardValidatorServiceTests()
         {
-            _creditCardService = new CreditCardService();
+            _cardValidator = new CardValidatorService();
         }
 
         [Theory]
-        [InlineData("1234")]
-        [InlineData("123456789")]
-        [InlineData("3213123")]
-        public void ValidateCard_ReturnsFalse_WhenTooShort(string cardNumber)
+        [InlineData("3497 7965 8312 797", true)] // American Express - valid
+        [InlineData("4532 2080 2150 4434", true)] // Visa - valid
+        [InlineData("5551561443896215", true)] // MasterCard - valid
+        [InlineData("1234 5678 9012 345", false)] // Invalid number
+        [InlineData("4024-0071-6540-1778", true)] // Visa with hyphens
+        [InlineData("0000 0000 0000 0000", false)] // All zeros
+        [InlineData("", false)] // Empty string
+        [InlineData("   ", false)] // Only spaces
+        [InlineData("123456789012", false)] // Too short (12 digits)
+        [InlineData("12345678901234567890", false)] // Too long (20 digits)
+        [InlineData("4012 8888 8888 1881", true)] // Valid Visa number
+        [InlineData("5105 1051 0510 5100", true)] // Valid MasterCard number
+        public void ValidateCard_ShouldReturnExpectedResult(string cardNumber, bool expected)
         {
-            var result = _creditCardService.ValidateCard(cardNumber);
-            Assert.False(result);
+            var result = _cardValidator.ValidateCard(cardNumber);
+            Assert.Equal(expected, result);
         }
 
         [Theory]
-        [InlineData("12345678912347656765756757657")]
-        [InlineData("1234567891234897879789595879789")]
-        [InlineData("123456789123454353464564564563546")]
-        public void ValidateCard_ReturnsFalse_WhenTooLong(string cardNumber)
+        [InlineData("3497 7965 8312 797", "American Express")]
+        [InlineData("345-470-784-783-010", "American Express")]
+        [InlineData("378523393817437", "American Express")]
+        [InlineData("4024-0071-6540-1778", "Visa")]
+        [InlineData("4532 2080 2150 4434", "Visa")]
+        [InlineData("4532289052809181", "Visa")]
+        [InlineData("5530016454538418", "MasterCard")]
+        [InlineData("5551561443896215", "MasterCard")]
+        [InlineData("5131208517986691", "MasterCard")]
+        [InlineData("6011 2345 6789 0123", "Discover")]
+        [InlineData("3528 1234 5678 9012", "JCB")]
+        [InlineData("3056 1234 5678 90", "Diners Club")]
+        [InlineData("5018 1234 5678 9012", "Maestro")]
+        [InlineData("5020-1234-5678-9012", "Maestro")]
+        [InlineData("1234 5678 9012 3456", "Unknown")] // Unknown card
+        [InlineData("0000 0000 0000 0000", "Unknown")] // All zeros
+        [InlineData("", "Unknown")] // Empty card number
+        [InlineData("   ", "Unknown")] // Only spaces
+        [InlineData("123456789012", "Unknown")] // Too short
+        [InlineData("12345678901234567890", "Unknown")] // Too long
+        public void GetCardType_ShouldReturnCorrectType(string cardNumber, string expected)
         {
-            var result = _creditCardService.ValidateCard(cardNumber);
-            Assert.False(result);
+            var result = _cardValidator.GetCardType(cardNumber);
+            Assert.Equal(expected, result);
         }
 
-        [Theory]
-        [InlineData("4532015112830366")] 
-        [InlineData("6011111111111117")] 
-        [InlineData("378282246310005")]  
-        public void ValidateCard_ReturnsTrue_WhenValidCardNumber(string cardNumber)
+        [Fact]
+        public void CreditCardValidator_ThrowsTooShortException()
         {
-            var result = _creditCardService.ValidateCard(cardNumber);
-            Assert.True(result);
+            // Arrange
+            var cardValidatorService = new CardValidatorService();
+
+            // Act & Assert
+            Assert.Throws<CardNumberTooShortException>(() => cardValidatorService.ValidateCard("123123"));
         }
 
-        [Theory]
-        [InlineData("4532015112830366", "Visa")]
-        [InlineData("5105105105105100", "MasterCard")]
-        [InlineData("378282246310005", "American Express")]
-        [InlineData("6011111111111117", "Discover")]
-        [InlineData("3528000000000000", "JCB")]
-        public void GetCardType_ReturnsCorrectType(string cardNumber, string expectedType)
+        [Fact]
+        public void CreditCardValidator_ThrowsTooLongException()
         {
-            var result = _creditCardService.GetCardType(cardNumber);
-            Assert.Equal(expectedType, result);
+            // Arrange
+            var cardValidatorService = new CardValidatorService();
+
+            // Act & Assert
+            Assert.Throws<CardNumberTooLongException>(() => cardValidatorService.ValidateCard("123456789012345678901"));
+        }
+
+        [Fact]
+        public void CreditCardValidator_ThrowsInvalidException()
+        {
+            // Arrange
+            var cardValidatorService = new CardValidatorService();
+
+            // Act & Assert
+            Assert.Throws<CardNumberInvalidException>(() => cardValidatorService.ValidateCard("1234 5678 9012 3456"));
         }
     }
 }
