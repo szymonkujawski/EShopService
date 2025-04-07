@@ -1,6 +1,5 @@
 ﻿using EShopService.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +10,8 @@ namespace EShop.Domain.Repositories
 {
     public class DataContext : DbContext
     {
-        public DataContext(DbContextOptions < DataContext > options) : base(options) {}
+        public DataContext(DbContextOptions<DataContext> options) : base(options) { } 
 
-    public DbSet<Product> Products { get; set; }
+        public DbSet<Product> Products { get; set; }
     }
 }
