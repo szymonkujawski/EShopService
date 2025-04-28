@@ -1,6 +1,4 @@
-﻿using EShop.Application.Service;
-using EShop.Application.Services;
-using EShop.Domain.Exceptions;
+﻿using EShop.Application.Services;
 using EShop.Domain.Exceptions.CreditCard;
 
 namespace EShop.Application.Tests.Services

@@ -1,19 +1,36 @@
 ﻿using EShop.Domain.Repositories;
-using EShopService.Models;
+using EShopDomain.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace EShop.Domain.Seeders
 {
-    public static class EShopSeeder
+    public class EShopSeeder(DataContext context) : IEShopSeeder
     {
-        public static void Seed(DataContext context)
+        public async Task Seed()
         {
+            if (!context.Categories.Any())
+            {
+                var categories = new List<Category>
+                {
+                    new Category { Name = "Klocki" },
+                };
+
+                context.Categories.AddRange(categories);
+                context.SaveChanges();
+            }
             if (!context.Products.Any())
             {
-                context.Products.AddRange(
-                    new Product { Name = "Product 1", Ean = "1234567890123", Price = 10.99m, Stock = 100, Sku = "SKU001", Category = new Category() {Name = "Electronics" } },
-                    new Product { Name = "Product 2", Ean = "1234567890124", Price = 20.99m, Stock = 200, Sku = "SKU002", Category = new Category() { Name = "Books" } },
-                    new Product { Name = "Product 3", Ean = "1234567890125", Price = 30.99m, Stock = 300, Sku = "SKU003", Category = new Category() { Name = "Clothing" } }
-                );
+                var category = await context.Categories
+                        .Where(x => x.Name == "Klocki").FirstOrDefaultAsync();
+
+                var products = new List<Product>
+                {
+                    new Product { Name = "Cobi", Ean = "1234", Category = category },
+                    new Product { Name = "Duplo", Ean = "431", Category = category },
+                    new Product { Name = "Lego", Ean = "12212", Category = category }
+                };
+
+                context.Products.AddRange(products);
                 context.SaveChanges();
             }
         }

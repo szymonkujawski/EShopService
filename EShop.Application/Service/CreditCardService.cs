@@ -1,5 +1,4 @@
 ﻿
-using EShop.Domain.Exceptions;
 using EShop.Domain.Exceptions.CreditCard;
 using System.Text.RegularExpressions;
 
@@ -10,7 +9,7 @@ namespace EShop.Application.Services
 
         public Boolean ValidateCardNumber(string cardNumber)
         {
-            if (cardNumber.Length < 13)
+            if(cardNumber.Length < 13)
             {
                 throw new CardNumberTooShortException();
             }
